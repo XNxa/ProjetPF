@@ -1,5 +1,5 @@
 module Init = struct
-  let dt = 1000. /. 60. (* 60 Hz *)
+  let dt = 1. /. 60.(* 60 Hz *)
 end
 
 module Box = struct
