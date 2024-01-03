@@ -1,6 +1,6 @@
 # Nos etat de notre jeu
 
-```Ocaml
+```OCaml
 type etat = Etat of etat_balle * etat_briques * etat_raquette * score
 
 type vitesse = float * float

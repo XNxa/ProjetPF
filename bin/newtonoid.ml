@@ -2,9 +2,8 @@
 open Libnewtonoid
 open Iterator
 open Config
-
-(* exemple d'ouvertue d'un tel module de la bibliotheque : *)
 open Game
+open Grid
 
 let graphic_format =
   Format.sprintf
@@ -12,10 +11,9 @@ let graphic_format =
     (int_of_float ((2. *. Box.marge) +. Box.supx -. Box.infx))
     (int_of_float ((2. *. Box.marge) +. Box.supy -. Box.infy))
 
-let draw_state etat = failwith "A DEFINIR"
 
 (* extrait le score courant d'un etat : *)
-let score etat : int = failwith "A DEFINIR"
+let score etat =  1(* failwith "A DEFINIR" *) (* TODO *)
 
 let draw flux_etat =
   let rec loop flux_etat last_score =
@@ -24,7 +22,8 @@ let draw flux_etat =
     | Some (etat, flux_etat') ->
       Graphics.clear_graph ();
       (* DESSIN ETAT *)
-      draw_state etat;
+      let (_, _, g, _, _) = etat in 
+      dessin g Box.supx Box.supy;
       (* FIN DESSIN ETAT *)
       Graphics.synchronize ();
       Unix.sleepf Init.dt;
@@ -34,7 +33,8 @@ let draw flux_etat =
   Graphics.open_graph graphic_format;
   Graphics.auto_synchronize false;
   let score = loop flux_etat 0 in
-  Format.printf "Score final : %d@\n" score;
+  Format.printf "Score final : %d@\n" 10 (* score *);
   Graphics.close_graph ()
 
-let () = game_hello ()
+let states = Flux.unfold (fun e -> let s = next e in Some (e, s)) (init_state 1)
+let () = draw states
