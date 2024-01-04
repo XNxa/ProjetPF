@@ -56,9 +56,9 @@ let rec unless fl cond f =
 
 module Bouncing (F: Frame) =
 struct
-  let cond ((pos1, pos2), (vit1, vit2)) = (Collision.contact_x pos1 vit1) || (Collision.contact_y pos2 vit2)
   module FF = FreeFall (F)
-  let rec run etat = unless (FF.run etat) cond (fun etat -> (run (Collision.rebond etat)))
+  open Collision
+  let rec run etat = unless (FF.run etat) contact (fun etat -> (run (rebond etat)))
 end
 
 module F : Frame =

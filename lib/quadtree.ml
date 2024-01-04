@@ -223,5 +223,5 @@ struct
   let%test _ = at 2 1 q1 = None
   let%test _ = at 1 2 q1 = None
 
-  (* TODO: Corriger ce comportement ! *) let%test _ = insert (-1) 1 0 Empty = insert 2 2 0 Empty
+  (* FIXME: Corriger ce comportement ! *) let%test _ = insert (-1) 1 0 Empty = insert 2 2 0 Empty
 end
