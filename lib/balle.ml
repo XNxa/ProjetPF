@@ -1,6 +1,4 @@
-open Libnewtonoid
 open Iterator
-open Config
 
 (* le type des états de la balle de la forme (x, y), (dx, dy)  *)
 (* i.e. position (x, y) et vitesse (dx, dy)        *)
@@ -26,7 +24,7 @@ let integre dt flux =
 (* Module du modèle dynamique d'une balle en 2D.               *)
 (* A partir d'un état initial, run produit le flux des états   *)
 (* successifs de la balle, qui pourra être affiché             *)
-module FreeFall =
+module FreeFall(Init : sig val dt:float end) =
 struct
   let g = 9.81
   let run : etat_balle -> etat_balle Flux.t = 
