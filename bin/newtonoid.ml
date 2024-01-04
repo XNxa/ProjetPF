@@ -11,7 +11,7 @@ let graphic_format =
     (int_of_float ((2. *. Box.marge) +. Box.supy -. Box.infy))
 
 (* extrait le score courant d'un etat : *)
-let score etat : int = 10 (* failwith "A DEFINIR" *)
+let score _etat : int = 10 (* failwith "A DEFINIR" *)
 
 let draw flux_etat =
   let rec loop flux_etat last_score =
@@ -25,7 +25,6 @@ let draw flux_etat =
       Graphics.synchronize ();
       Unix.sleepf Init.dt;
       loop flux_etat' (last_score + score etat)
-    | _ -> assert false
   in
   Graphics.open_graph graphic_format;
   Graphics.auto_synchronize false;

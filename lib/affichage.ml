@@ -42,7 +42,7 @@ let dessiner_brique x y color =
 let dessiner_etat etat =
   let rpos, bxpos, bypos = 
   match etat with
-  | Game.Raquette (rpos, _), Game.Balle (((bxpos, bypos), _), _) -> rpos, bxpos, bypos 
+  | Game.Racket (rpos, _), Game.Ball (((bxpos, bypos), _), _) -> rpos, bxpos, bypos 
   in
   dessiner_balle bxpos bypos;
   dessiner_raquette rpos;
