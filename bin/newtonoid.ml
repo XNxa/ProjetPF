@@ -34,5 +34,8 @@ let draw flux_etat =
   Graphics.close_graph ()
 
 
-
-let () = draw (Flux.constant 1)
+let etats = 
+  Flux.unfold 
+  (fun current_state -> Some (current_state, Game.next_state current_state)) 
+  Game.init_state
+let () = draw etats

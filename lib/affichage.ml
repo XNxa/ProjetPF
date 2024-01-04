@@ -40,8 +40,12 @@ let dessiner_brique x y color =
   Graphics.fill_rect (int_of_float x) (int_of_float y) brique_width brique_height
 
 let dessiner_etat etat =
-  dessiner_balle 395. 295.;
-  dessiner_raquette 395.;
+  let rpos, bxpos, bypos = 
+  match etat with
+  | Game.Raquette (rpos, _), Game.Balle (((bxpos, bypos), _), _) -> rpos, bxpos, bypos 
+  in
+  dessiner_balle bxpos bypos;
+  dessiner_raquette rpos;
   dessiner_brique 125. 500. Graphics.red;
   dessiner_brique 325. 500. Graphics.green;
   dessiner_brique 525. 500. Graphics.blue; 

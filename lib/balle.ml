@@ -40,3 +40,50 @@ struct
     
     Flux.map2 (fun a b -> (a,b)) position vitesse
 end
+
+module type Frame =
+  sig
+    val dt : float
+    val box_x : float * float
+    val box_y : float * float
+  end
+
+module F : Frame = 
+struct
+  let dt = 1./.60.
+  let box_x = 10., 590.
+  let box_y = 10., 590.
+end
+
+let rec unless fl cond f =
+  Tick (lazy  
+    Flux.(
+      match uncons fl with
+      | None -> None
+      | Some (t, q) -> if cond t then Some (t, f t) else Some (t, cons t (unless q cond f))
+    ))
+    
+let contact_x x dx = 
+  let xmin, xmax = F.box_x in
+  (x > xmax && dx > 0. || x < xmin && dx < 0.)
+
+let rebond_x x dx = if contact_x x dx then -.dx else dx
+
+let contact_y y dy = 
+  let ymin, ymax = F.box_y in
+  (y > ymax && dy > 0. || y < ymin && dy < 0.)
+
+let rebond_y y dy = if contact_y y dy then -.dy else dy 
+
+let rebond ((pos1, pos2), (vit1, vit2)) =
+   ((pos1,pos2), ((rebond_x pos1 vit1),(rebond_y pos2 vit2)))
+
+module Bouncing (F: Frame) =
+struct
+  let g = 9.81
+  let cond ((pos1, pos2), (vit1, vit2)) = (contact_x pos1 vit1) || (contact_y pos2 vit2)
+  module FF = FreeFall (F)
+  let rec run etat = unless (FF.run etat) cond (fun etat -> (run (rebond etat)))
+end
+
+module B = Bouncing (F)
