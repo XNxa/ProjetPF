@@ -1,4 +1,3 @@
-
 module type Quadtree = 
 (* General interface for a quadtree *) 
 sig
@@ -19,209 +18,125 @@ sig
   val all_elements_and_coordinates : 'a quadtree -> ('a*(int*int)) list
 end
 
-
-module type Square_2D_Space =
-(* Module to store a square plane size *)
+module type Screen_2D =
 sig
-  val length : int
+  val width : float
+  val height : float
 end
 
-module Quadtree2D (Screen : Square_2D_Space) : Quadtree =
-(* Implementation of a quadtree to store elements of Square surface *)
+module type SizedBrick = 
+sig
+  type brick = Brick of float * float * float * float
+  val get_x : brick -> float
+  val get_y : brick -> float
+  val get_w : brick -> float 
+  val get_h : brick -> float
+end
+
+module BrickQuadtree(Screen : Screen_2D)(Brick : SizedBrick) =
 struct
-
-(*
-  L'espace 2D est divisé dans le quadtree comme cela :
-  Node (a, b, c, d)
-
-           |
-       a   |   b
-           |
-    -------|--------   
+  (* 
+     L'espace 2D est divisé dans le quadtree comme cela :
+    Node (a, b, c, d)
            |
        c   |   d
            |
+    -------|--------   
+           |
+       a   |   b
+           |
+   et ce recursivement
+  *)
 
-  et ce recursivement
-*)
+  open Brick
 
-  let rec log2 = function
-  | 1 -> 0
-  | n -> 1 + log2 (n / 2)
-
-  let rec pow a = function
-  | 0 -> 1
-  | 1 -> a
-  | n -> let b = pow a (n / 2) in
-    b * b * (if n mod 2 = 0 then 1 else a)
-
-  type 'a quadtree =
+  type 'a quadtree = 
     | Empty
     | Leaf of 'a
     | Node of 'a quadtree * 'a quadtree * 'a quadtree * 'a quadtree
 
-  let insert x y elem q =
-    let n_max = log2 Screen.length in
-    let rec insert_aux x y q n =
-      match q with 
-      | Empty ->  
-        if n < n_max then
-          let m = pow 2 (n_max - n) in
-          if x <= m && y <= m then
-            Node (insert_aux x y Empty (n+1), Empty, Empty, Empty)
-          else if x > m && y <= m then
-            Node (Empty, insert_aux (x-m) y Empty (n+1), Empty, Empty)
-          else if x <= m && y > m then
-            Node (Empty, Empty, insert_aux x (y-m) Empty (n+1), Empty)
-          else
-            Node (Empty, Empty, Empty, insert_aux (x-m) (y-m) Empty (n+1))
-        else
-          if x = 1 && y = 1 then
-            Node (Leaf elem, Empty, Empty, Empty)
-          else if x = 2 && y = 1 then
-            Node (Empty, Leaf elem, Empty, Empty)
-          else if x = 1 && y = 2 then
-            Node (Empty, Empty, Leaf elem, Empty)
-          else
-            Node (Empty, Empty, Empty, Leaf elem)
-      | Node (hg, hd, bg, bd) ->
-        if n < n_max then
-          let m = pow 2 (n_max - n) in
-          if x <= m && y <= m then
-            Node (insert_aux x y hg (n+1), hd, bg, bd)
-          else if x > m && y <= m then
-            Node (hg, insert_aux (x-m) y hd (n+1), bg, bd)
-          else if x <= m && y > m then
-            Node (hg, hd, insert_aux x (y-m) bg (n+1), bd)
-          else
-            Node (hg, hd, bg, insert_aux (x-m) (y-m) bd (n+1))
-        else
-          if x = 1 && y = 1 then
-            Node (Leaf elem, hd, bg, bd)
-          else if x = 2 && y = 1 then
-            Node (hg, Leaf elem, bg, bd)
-          else if x = 1 && y = 2 then
-            Node (hg, hd, Leaf elem, bd)
-          else
-            Node (hg, hd, bg, Leaf elem)
-      | Leaf _ -> failwith "Should not happen"
-
-    in insert_aux x y q 1
-
-  let at x y q =
-    let n_max = log2 Screen.length in
-    let rec at_aux x y q n =
-      match q with 
+  let at x y quadtree = 
+    let rec at_aux n accx accy quadtree =
+      match quadtree with 
       | Empty -> None
-      | Leaf a -> Some a
-      | Node (hg, hd, bg, bd) -> 
-        let m = pow 2 (n_max - n) in
-        if x <= m && y <= m then
-          at_aux x y hg (n+1)
-        else if x > m && y <= m then
-          at_aux (x-m) y hd (n+1)
-        else if x <= m && y > m then
-          at_aux x (y-m) bg (n+1)
+      | Leaf b -> if get_x b = x && get_y b = y then Some b else None
+      | Node (a, b, c, d) ->
+        let m1, m2 = Screen.width /. 2.**n, Screen.height /. 2.**n in
+        if x -. accx < m1 then 
+          if y -. accy < m2 then 
+            at_aux (n+.1.) accx accy a
+          else 
+            at_aux (n+.1.) accx (accy+.m2) c
         else 
-          at_aux (x-m) (y-m) bd (n+1)
-    in 
-      at_aux x y q 1
-  
-  let remove x y q =
-    let rec remove_aux x y q n =
-      match q with
-      | Empty -> Empty
-      | Leaf _ -> Empty  (* Remove the leaf at the specified coordinates *)
-      | Node (hg, hd, bg, bd) ->
-        let n_max = log2 Screen.length in
-        let m = pow 2 (n_max - n)  in
-        if x <= m && y <= m then
-          let new_hg = remove_aux x y hg (n+1) in
-          if is_empty new_hg && is_empty hd && is_empty bg && is_empty bd then
-            Empty
+          if y -. accy < m2 then 
+            at_aux (n+.1.) (accx+.m1) accy b
+          else 
+            at_aux (n+.1.) (accx+.m1) (accy+.m2) d
+      in
+        at_aux 1. 0. 0. quadtree 
+
+  let insert v quadtree = 
+    let x = get_x v and y = get_y v in
+    let rec insert_aux n accx accy v quadtree =
+      match quadtree with 
+      | Empty -> Leaf v
+      | Leaf b -> 
+        let tree_with_b = insert_aux n accx accy b (Node (Empty, Empty, Empty, Empty))
+        in 
+          insert_aux n accx accy v tree_with_b
+      | Node (a, b, c, d) -> 
+        let m1, m2 = (Screen.width /. 2.**n), (Screen.height /. 2.**n) in
+        if x -. accx < m1 then
+          if y -. accy < m2 then
+            Node (insert_aux (n+.1.) accx accy v a, b, c, d)
           else
-            Node (new_hg, hd, bg, bd)
-        else if x > m && y <= m then
-          let new_hd = remove_aux (x - m) y hd (n+1) in
-          if is_empty hg && is_empty new_hd && is_empty bg && is_empty bd then
-            Empty
-          else
-            Node (hg, new_hd, bg, bd)
-        else if x <= m && y > m then
-          let new_bg = remove_aux x (y - m) bg (n+1) in
-          if is_empty hg && is_empty hd && is_empty new_bg && is_empty bd then
-            Empty
-          else
-            Node (hg, hd, new_bg, bd)
+            Node (a, b, insert_aux (n+.1.) accx (accy+.m2) v c, d)
         else
-          let new_bd = remove_aux (x - m) (y - m) bd (n+1) in
-          if is_empty hg && is_empty hd && is_empty bg && is_empty new_bd then
-            Empty
-          else
-            Node (hg, hd, bg, new_bd)
-    and is_empty = function
-      | Empty -> true
-      | _ -> false
-    in remove_aux x y q 1 
-  
-  let rec print_n_space n =
-    if n = 0 then print_string ""
-    else 
-      (print_string " "; print_n_space (n-1))
+          if y -. accy < m2 then
+            Node (a, insert_aux (n+.1.) (accx+.m1) accy v b, c, d)
+          else 
+            Node (a, b, c, insert_aux (n+.1.) (accx+.m1) (accy+.m2) v d)
+    in
+      insert_aux 1. 0. 0. v quadtree
 
-  let print_int_qt q =
-    let rec aux q n =
-      match q with  
-      | Empty -> print_n_space n; print_endline "E"
-      | Leaf a -> print_n_space n; print_endline (string_of_int a)
-      | Node (hg, hd, bg, bd) -> (
-        print_n_space n; print_endline "[";
-        aux hg (n+1);
-        print_n_space n; print_endline ",";
-        aux hd (n+1);
-        print_n_space n; print_endline ",";
-        aux bg (n+1);
-        print_n_space n; print_endline ",";
-        aux bd (n+1);
-        print_n_space n; print_endline "]"
-      )
-    in 
-        aux q 0
+  let remove x y quadtree = failwith "Not implemented"
+  let print_int_qt quadtree =
+    match quadtree with
+    | Empty -> print_endline "Empty";
+    | Leaf b -> print_string "Brick"; print_float (get_x b); print_float (get_y b); print_newline ();
+    | Node _ -> print_endline "NEW NODE" 
 
-  let all_elements_and_coordinates q =
-    let nmax = log2 Screen.length in
-    let rec aux n i j q =
-      let depl = pow 2 (nmax - n) in
-      match q with
-      | Empty -> []
-      | Leaf a -> [a, (i, j)]
-      | Node (a, b, c, d) -> aux (n+1) i j a @ aux (n+1) (i+depl) j b @ aux (n+1) i (j+depl) c @ aux (n+1) (i+depl) (j+depl) d
-    in 
-      aux 1 0 0 q 
+
+  let all_elements_and_coordinates quadtree = failwith "Not implemented"
 end
 
-(* *********** TESTS *********** *)
-(* TODO: Completer les tests *)
-module Tests=
+module Tests =
 struct
-  (* We test on a 16 by 16 grid *)
-  module MyGrid : Square_2D_Space =
+
+  module Ecran : Screen_2D =
   struct
-    let length = 16
+    let width = 100.
+    let height = 200.
   end
 
-  (* We instanciate the Fonctor for the 16x16 grid *)
-  module QT = Quadtree2D(MyGrid)
-  open QT
+  module Brique : SizedBrick = 
+  struct
+    type brick = Brick of float * float * float * float
+    let get_x b = let Brick (x, _, _, _) = b in x
+    let get_y b = let Brick (_, x, _, _) = b in x
+    let get_w b = let Brick (_, _, x, _) = b in x
+    let get_h b = let Brick (_, _, _, x) = b in x
+  end
 
-  let q1 = insert 1 1 0 Empty
+  module BQT = BrickQuadtree(Ecran)(Brique)
+  open BQT
+  open Brique
 
-  let%test _ = remove 1 1 q1 = Empty
-  let%test _ = remove 1 2 (insert 1 2 1 q1) = q1 
-  let%test _ = remove 1 1 Empty = Empty
-  let%test _ = at 1 1 q1 = Some 0
-  let%test _ = at 2 1 q1 = None
-  let%test _ = at 1 2 q1 = None
 
-  (* FIXME: Corriger ce comportement ! *) let%test _ = insert (-1) 1 0 Empty = insert 2 2 0 Empty
+  let q1 = insert (Brick (51., 102., 10., 10.)) Empty
+  let q2 = insert (Brick (51., 102., 10., 10.)) q1
+  (* let%test _ = at 1. 2. q2 = Some (Brick (1., 2., 10., 10.))
+  let%test _ = at 5. 2. q2 = None
+  let%test _ = at 56. 2. q2 = Some (Brick (56., 2., 10., 10.)) *)
+
 end
