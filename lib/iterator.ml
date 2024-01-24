@@ -12,6 +12,7 @@ module type Intf = sig
   val uncons : 'a t -> ('a * 'a t) option
   val apply : ('a -> 'b) t -> 'a t -> 'b t
   val map2 : ('a -> 'b -> 'c) -> 'a t -> 'b t -> 'c t
+  val union3 : 'a t -> 'b t -> 'c t -> ('a * 'b * 'c) t
 end
 
 type 'a flux = Tick of ('a * 'a flux) option Lazy.t
@@ -57,4 +58,13 @@ module Flux : Intf with type 'a t = 'a flux = struct
   (* implantation rapide mais inefficace de map *)
   let map f i = apply (constant f) i
   let map2 f i1 i2 = apply (apply (constant f) i1) i2
+
+  let rec union3 f1 f2 f3 = 
+    Tick
+      (lazy
+        (match uncons f1, uncons f2, uncons f3 with
+         | None, _, _ -> None
+         | _, None, _ -> None
+         | _, _, None -> None
+         | Some (t1, q1), Some (t2, q2), Some (t3, q3) -> Some ((t1, t2, t3), union3 q1 q2 q3)))
 end

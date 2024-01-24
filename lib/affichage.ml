@@ -5,13 +5,13 @@ open Config
   les coordonées sont définis depuis le coin 
   bas gauche de l'écran :
   
-  y
+  y = 600
   ^
   |
   |
   |
   |
-  0--------------> x
+  0--------------> x = 800
 *)
 (* Dessiner la balle à partir de ses coordonées *)
 (* x, y : float *)

@@ -58,6 +58,7 @@ module Bouncing (F: Frame) =
 struct
   module FF = FreeFall (F)
   open Collision
+  (* let new_contact = contact || contact_brique briques *)
   let rec run etat = unless (FF.run etat) contact (fun etat -> (run (rebond etat)))
 end
 

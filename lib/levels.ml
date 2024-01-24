@@ -1,13 +1,13 @@
 
 module type LevelType =
 sig
-  val get_bricklist : (int * int) list
+  val get_bricklist : (float * float) list
 end
 
 module Level_1 : LevelType =
 struct
-  let length = 32
-  let get_bricklist =
+  (* let length = 32 *)
+  (* let get_bricklist =
     let rec aux i j acc =
       let new_acc = if (i+j) mod 2 = 0 then (i,j)::acc else acc in
       if i > 32 then 
@@ -18,7 +18,10 @@ struct
         else
           acc
     in
-    aux 1 length []
+    aux 1 length [] *)
+
+  let get_bricklist =
+    [(400., 450.)]
 end
 
 
