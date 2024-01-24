@@ -4,10 +4,11 @@ type etat_balle = Ball of Balle.composantes_balle * Balle.composantes_balle Iter
 
 type etat_jeu = etat_raquette * etat_balle
 
-let init_state = 
-  let pos_initiale = ((395.,295.),(50.,-150.)) in
-  Racket (395., Input.mouse),
-  Ball (pos_initiale, Balle.get_flux pos_initiale )
+let init_state =
+  Config.Init_pos.( 
+  let pos_initiale = ((ball_x, ball_y),(ball_vx, ball_vy)) in
+  Racket (racket_x, Input.mouse),
+  Ball (pos_initiale, Balle.get_flux pos_initiale))
 
 let next_state (Racket (pos, rf), Ball (balle_state, bf)) = 
   (match Iterator.Flux.uncons rf with
