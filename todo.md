@@ -1,5 +1,5 @@
 
-TODO: Ajout des éléments dans le quadtree (bricks || racket)   
+TODO: Ajout des éléments dans une structure de donnée (bricks || racket)   
 TODO: Collision de la raquette
 TODO: Collision des bricks
 TODO: Tuer la partie quand on perd la balle
