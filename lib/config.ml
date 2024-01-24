@@ -28,10 +28,8 @@ module Racket = struct
   let width = 50
   let height = 10
   let distance_from_bottom = 2
-  let color = Graphics.rgb 0 0 255
 end
 
 module Ball = struct
   let radius = 5
-  let color = Graphics.rgb 0 255 0
 end
