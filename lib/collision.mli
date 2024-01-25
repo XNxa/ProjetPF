@@ -14,4 +14,6 @@ val collisionBalleBrique : (float * float) -> (float * float) -> bool
 (* fonction qui indique si la balle est en contact avec les briques ou avec la raquette, 
 ou avec un mur. *)
 
-val contact : (float * float) * (float * float) -> float * bool -> (float * float) list -> bool
+val contact : ((float * float) * (float * float)) * (float * bool) * ((float * float) list) -> bool
+val rebond : ((float * float) * (float * float)) * (float * bool) * ((float * float) list) 
+    -> ((float * float) * (float * float)) * (float * bool) * ((float * float) list)

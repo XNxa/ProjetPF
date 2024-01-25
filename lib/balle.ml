@@ -27,7 +27,7 @@ let integre dt flux =
 module FreeFall(Init : sig val dt:float end) =
 struct
   let g = 9.81
-  let run ((pos1, pos2), (vit1, vit2)) =
+  let run (((pos1, pos2), (vit1, vit2)), _, etat_briques) (_, flux_souris_q) =
       let acceleration = Flux.constant (0., -.g) in
     
       let vitesse = Flux.map (fun (e1,e2) -> (e1+.vit1, e2+.vit2)) 
@@ -36,7 +36,7 @@ struct
       let position = Flux.map (fun (e1, e2) -> (e1+.pos1, e2+.pos2)) 
               (integre Init.dt vitesse) in
     
-    Flux.map2 (fun a b -> (a,b)) position vitesse
+    Flux.union3 (Flux.map2 (fun a b -> (a,b)) position vitesse) flux_souris_q (Flux.constant etat_briques)
 end
 
 module type Frame =
@@ -58,7 +58,12 @@ module Bouncing (F: Frame) =
 struct
   module FF = FreeFall (F)
   open Collision
-  let rec run etat = unless (FF.run etat) contact_murs (fun etat -> (run (rebond_murs etat)))
+
+  (* *)
+  (* Etat : position initiale de la balle, la postion initiale de la raquette et la position initialle des briques *)
+  (* Renvoie un flux : position de la balle, position de la raquette et la position des briques. *)
+  let rec run etat flux_souris = 
+    unless (FF.run etat flux_souris) contact (fun etat -> (run (rebond etat) flux_souris))
 end
 
 module F : Frame =
@@ -70,4 +75,4 @@ end
 
 module Export = Bouncing(F)
 
-let get_flux = Export.run
+let get_flux flux = Export.run flux Input.mouse

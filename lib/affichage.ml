@@ -37,7 +37,7 @@ let rec dessine_briques = function
   | [] -> ()
   | (brx, bry)::q -> dessiner_brique brx bry Graphics.blue ; dessine_briques q
 
-let dessiner_etat etat =
+let dessiner_etat (Game.Jeu (etat, _)) =
   let  (((bxpos, bypos), _), (rpos, _), liste_briques) = etat in
   dessiner_balle bxpos bypos;
   dessiner_raquette rpos;

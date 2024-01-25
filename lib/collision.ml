@@ -78,13 +78,13 @@ let contact_raquette (bx, by) rpos =
   collisionBalleBrique (bx, by) (rpos -. float_of_int Config.Racket.width/.2., float_of_int Racket.distance_from_bottom)
 
 (* Vérifier le contact avec les briques ou avec la raquette, ou avec un mur. *)
-let rec contact ((bx, by), (bdx, bdy)) (rpos, _) list_briques =
+let rec contact (((bx, by), (bdx, bdy)), (rpos, _), list_briques) =
   match list_briques with 
   | [] -> contact_raquette (bx, by) rpos || contact_murs ((bx, by), (bdx, bdy))
-  | (brx, bry)::q -> collisionBalleBrique (bx, by) (brx, bry) || (contact ((bx, by), (bdx, bdy)) (rpos, false) q)
+  | (brx, bry)::q -> collisionBalleBrique (bx, by) (brx, bry) || (contact (((bx, by), (bdx, bdy)), (rpos, false), q))
 
 
-let rebond ((bx, by), (bdx, bdy)) (rpos, b) list_briques = 
+let rebond (((bx, by), (bdx, bdy)), (rpos, b), list_briques) = 
   if contact_murs ((bx, by), (bdx, bdy)) then 
     (rebond_murs ((bx, by), (bdx, bdy))), (rpos, b), list_briques
   else if contact_raquette (bx, by) rpos then

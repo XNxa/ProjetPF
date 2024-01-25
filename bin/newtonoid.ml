@@ -33,8 +33,17 @@ let draw flux_etat =
   Graphics.close_graph ()
 
 
+
+
+let check_empty (Game.Jeu (_, f)) = Flux.uncons f = None 
+  
+
+
 let etats = 
   Flux.unfold 
-  (fun current_state -> Some (current_state, Game.next_jeu current_state)) 
-  Game.init_jeu
+  (fun current_state -> 
+    let next = Game.next_state current_state in
+    if check_empty next then None else Some (current_state, next)) Game.init_state
+
+
 let () = draw etats
