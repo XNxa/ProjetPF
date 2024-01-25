@@ -1,6 +1,6 @@
 type etat_raquette = float * bool 
-type etat_balle = Balle.composantes_balle * Flux balle * raquette * briques
 type etat_briques = Briques.brique list
+type etat_balle = Balle.composantes_balle
 
 type etat_jeu = etat_raquette * etat_balle * etat_briques 
 type jeu = Jeu of etat_jeu * etat_jeu Iterator.Flux.t
@@ -9,7 +9,7 @@ type jeu = Jeu of etat_jeu * etat_jeu Iterator.Flux.t
 let init_jeu = 
   Config.Init_pos.(
     Jeu (((racket_x, false), ((ball_x, ball_y),(ball_vx, ball_vy)), Briques.init), 
-    Iterator.Flux.union3 Input.mouse (Balle.get_flux ((ball_x, ball_y),(ball_vx, ball_vy))) (Iterator.Flux.constant Briques.init))
+    Iterator.Flux.union3 Input.mouse (Balle.get_flux ((ball_x, ball_y),(ball_vx, ball_vy)) ) (Iterator.Flux.constant Briques.init))
   )
   
 let next_jeu (Jeu (etat, flux)) =
@@ -17,7 +17,7 @@ let next_jeu (Jeu (etat, flux)) =
   | None -> Jeu (etat, flux)
   | Some (new_etat, flux') -> Jeu (new_etat, flux')
 
-(* 
+(*
 let init_state =
   Config.Init_pos.(
   let pos_initiale = ((ball_x, ball_y),(ball_vx, ball_vy)) in

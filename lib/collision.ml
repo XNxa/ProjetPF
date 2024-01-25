@@ -1,6 +1,5 @@
 open Config
 
-
 let contact_x x dx = 
   let xmin, xmax = Box.infx, Box.supx in
   (x > xmax && dx > 0. || x < xmin && dx < 0.)
@@ -13,47 +12,11 @@ let contact_y y dy =
 
 let rebond_y y dy = if contact_y y dy then -.dy else dy 
 
-let rebond ((pos1, pos2), (vit1, vit2)) =
+let rebond_murs ((pos1, pos2), (vit1, vit2)) =
    ((pos1,pos2), ((rebond_x pos1 vit1),(rebond_y pos2 vit2)))
 
-let contact ((x,y), (dx, dy)) =
+let contact_murs ((x,y), (dx, dy)) =
   contact_x x dx || contact_y y dy
-
-(* 
-   bool CollisionCercleAABB(Cercle C1,AABB box1)
-{
-   AABB boxCercle = GetBoxAutourCercle(C1);  // retourner la bounding box de l'image porteuse, ou calculer la bounding box.
-   if (CollisionAABBvsAABB(box1,boxCercle)==0)
-      return false;   // premier test
-   if (CollisionPointCercle(box1.x,box1.y,C1)==1
-    || CollisionPointCercle(box1.x,box1.y+box1.h,C1)==1
-    || CollisionPointCercle(box1.x+box1.w,box1.y,C1)==1
-    || CollisionPointCercle(box1.x+box1.w,box1.y+box1.h,C1)==1)
-      return true;   // deuxieme test
-   if (CollisionPointAABB(C1.x,C1.y,box1)==1)
-      return true;   // troisieme test
-   int projvertical = ProjectionSurSegment(C1.x,C1.y,box1.x,box1.y,box1.x,box1.y+box1.h);
-   int projhorizontal = ProjectionSurSegment(C1.x,C1.y,box1.x,box1.y,box1.x+box1.w,box1.y); 
-   if (projvertical==1 || projhorizontal==1)
-      return true;   // cas E
-   return false;  // cas B   
-}
-
-int ProjectionSurSegment(int Cx,int Cy,int Ax,int Ay,int Bx,int By)
-{
-   int ACx = Cx-Ax;
-   int ACy = Cy-Ay; 
-   int ABx = Bx-Ax;
-   int ABy = By-Ay; 
-   int BCx = Cx-Bx;
-   int BCy = Cy-By; 
-   int s1 = (ACx*.ABx) + (ACy*.ABy);
-   int s2 = (BCx*.ABx) + (BCy*.ABy); 
-   if (s1*.s2>0)
-     return 0;
-   return 1;
-}
-*)
 
 
 let collisionCarreCarre x1 y1 w1 h1 x2 y2 w2 h2 =
@@ -104,3 +67,27 @@ let collisionBalleBrique (xballe, yballe) (xbrick, ybrick) =
         projectionSurSegment xballe yballe xbrick ybrick xbrick (ybrick +. height) 
         ||
         projectionSurSegment xballe yballe xbrick ybrick (xbrick +. width) ybrick
+  
+
+
+(* Verifier le contact de la balle avec la raquette.                  *)
+(* Param bx, by : (float * float) : coordonnées du centre de la balle *)
+(* Param rpos : float : abscisse du centre de la raquette             *)
+(* Résultat : true si il y a contact entre la balle et la raquette    *)
+let contact_raquette (bx, by) rpos = 
+  collisionBalleBrique (bx, by) (rpos -. float_of_int Config.Racket.width/.2., float_of_int Racket.distance_from_bottom)
+
+(* Vérifier le contact avec les briques ou avec la raquette, ou avec un mur. *)
+let rec contact ((bx, by), (bdx, bdy)) (rpos, _) list_briques =
+  match list_briques with 
+  | [] -> contact_raquette (bx, by) rpos || contact_murs ((bx, by), (bdx, bdy))
+  | (brx, bry)::q -> collisionBalleBrique (bx, by) (brx, bry) || (contact ((bx, by), (bdx, bdy)) (rpos, false) q)
+
+
+let rebond ((bx, by), (bdx, bdy)) (rpos, b) list_briques = 
+  if contact_murs ((bx, by), (bdx, bdy)) then 
+    (rebond_murs ((bx, by), (bdx, bdy))), (rpos, b), list_briques
+  else if contact_raquette (bx, by) rpos then
+      ((bx, by), (bdx, bdy)), (rpos, b), list_briques (* TODO*)
+    else (* On un contact avec une brique : la supprimer de la liste des briques TODO *)
+      ((bx, by), (bdx, bdy)), (rpos, b), list_briques

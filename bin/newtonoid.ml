@@ -35,6 +35,6 @@ let draw flux_etat =
 
 let etats = 
   Flux.unfold 
-  (fun current_state -> Some (current_state, Game.next_state current_state)) 
-  Game.init_state
+  (fun current_state -> Some (current_state, Game.next_jeu current_state)) 
+  Game.init_jeu
 let () = draw etats
