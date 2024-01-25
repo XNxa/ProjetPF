@@ -13,7 +13,9 @@ let graphic_format =
 (* extrait le score courant d'un etat : *)
 let score _etat : int = 10 (* failwith "A DEFINIR" *)
 
-let draw flux_etat =
+let check_empty (Game.Jeu (_, f)) = Flux.uncons f = None 
+
+let draw =
   let rec loop flux_etat last_score =
     match Flux.(uncons flux_etat) with
     | None -> last_score
@@ -28,22 +30,16 @@ let draw flux_etat =
   in
   Graphics.open_graph graphic_format;
   Graphics.auto_synchronize false;
-  let score = loop flux_etat 0 in
+  Format.printf "Initialisation du jeu.@\n";
+  let etats = 
+    Flux.unfold 
+    (fun current_state -> 
+      let next = Game.next_state current_state in
+      if check_empty next then None else Some (current_state, next)) Game.init_state
+  in
+  let score = loop etats 0 in
   Format.printf "Score final : %d@\n" score;
   Graphics.close_graph ()
 
 
-
-
-let check_empty (Game.Jeu (_, f)) = Flux.uncons f = None 
-  
-
-
-let etats = 
-  Flux.unfold 
-  (fun current_state -> 
-    let next = Game.next_state current_state in
-    if check_empty next then None else Some (current_state, next)) Game.init_state
-
-
-let () = draw etats
+let () = draw
