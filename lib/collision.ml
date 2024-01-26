@@ -19,16 +19,14 @@ let contact_murs ((x,y), (dx, dy)) =
   contact_x x dx || contact_y y dy
 
 let collisionCarreCarre x1 y1 w1 h1 x2 y2 w2 h2 =
-  if (x2 >= x1 +. w1) || (x2 +. w2 <= x1) || (y2 >= y1 +. h1) || (y2 +. h2 <= y1) then 
-    false 
-  else true
+  not ((x2 >= x1 +. w1) || (x2 +. w2 <= x1) || (y2 >= y1 +. h1) || (y2 +. h2 <= y1))
 
 let collisionPointCercle x1 y1 x2 y2 r =
   let dx = x1 -. x2 in
   let dy = y1 -. y2 in
   let dcarre = dx *. dx +. dy *. dy in
-  if dcarre <= r*.r then true 
-  else false
+  dcarre <= r*.r 
+  
 
 let collisionPointCarre xp yp x y w h =
   if (xp >= x) && (xp <= x +. w) && (yp >= y) && (yp <= y +. h) then true
@@ -47,7 +45,7 @@ let projectionSurSegment cx cy ax ay bx by =
   
 
 let collisionCircleAABB (xballe, yballe) (xbrick, ybrick) radius width height = 
-  if not (collisionCarreCarre (xballe-.radius/.2.) (yballe-.radius/.2.) radius radius xbrick ybrick width height) 
+  if not (collisionCarreCarre (xballe-.radius) (yballe-.radius) radius radius xbrick ybrick width height) 
     then false
   else 
     if   (collisionPointCercle xbrick ybrick xballe yballe radius)  
@@ -84,14 +82,14 @@ let collisionBalleRaquette (xballe, yballe) xraquette =
 (* Vérifier le contact avec les briques ou avec la raquette, ou avec un mur. *)
 let rec contact (((bx, by), (bdx, bdy)), (rpos, _), list_briques) =
   match list_briques with 
-  | [] -> collisionBalleRaquette (bx, by) rpos|| contact_murs ((bx, by), (bdx, bdy))
+  | [] -> collisionBalleRaquette (bx, by) rpos || contact_murs ((bx, by), (bdx, bdy))
   | (brx, bry)::q -> collisionBalleBrique (bx, by) (brx, bry) || (contact (((bx, by), (bdx, bdy)), (rpos, false), q))
 
 
 let rebond (((bx, by), (bdx, bdy)), (rpos, b), list_briques) = 
   if contact_murs ((bx, by), (bdx, bdy)) then 
     (rebond_murs ((bx, by), (bdx, bdy))), (rpos, b), list_briques
-  else if collisionBalleRaquette (bx, by) rpos then    
-    (print_endline "contact raquette" ; ((bx, by+.1.), (bdx, -.bdy)), (rpos, b), list_briques )
+  else if collisionBalleRaquette (bx, by) rpos then
+    ((bx, by+.2.), (bdx, -.bdy)), (rpos, b), list_briques 
     else (* On un contact avec une brique : la supprimer de la liste des briques TODO *)
       ((bx, by), (bdx, bdy)), (rpos, b), list_briques

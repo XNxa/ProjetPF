@@ -26,8 +26,8 @@ end
 
 module Racket = struct
   let width = 50
-  let height = 10
-  let distance_from_bottom = 2
+  let height = 50
+  let distance_from_bottom = 20
 end
 
 module Ball = struct
