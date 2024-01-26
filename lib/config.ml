@@ -15,7 +15,7 @@ module Init_pos = struct
   let ball_x = 395.
   let ball_y = 295.
   let ball_vx = 50.
-  let ball_vy = -150.
+  let ball_vy = -550.
 end
 
 
@@ -26,10 +26,14 @@ end
 
 module Racket = struct
   let width = 50
-  let height = 50
+  let height = 10
   let distance_from_bottom = 20
 end
 
 module Ball = struct
-  let radius = 50
+  let radius = 5
+end
+
+module Acceleration = struct
+  let racket = 15.
 end

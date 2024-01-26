@@ -6,22 +6,21 @@ end
 
 module Level_1 : LevelType =
 struct
-  (* let length = 32 *)
-  (* let get_bricklist =
-    let rec aux i j acc =
-      let new_acc = if (i+j) mod 2 = 0 then (i,j)::acc else acc in
-      if i > 32 then 
-        aux 1 (j-1) new_acc
-      else 
-        if j >= 1 then 
-          aux (i+1) j new_acc
-        else
-          acc
-    in
-    aux 1 length [] *)
-
+  
   let get_bricklist =
-    [(400., 450.)]
+    let rec aux i j acc b =
+      let brick_x = i *. float_of_int Config.Brick.width in
+      let brick_y = (j +. 1.) *. float_of_int Config.Brick.height in
+      let new_acc = if int_of_float (i+.j) mod 2 = 0 then (brick_x, brick_y) :: acc else acc in
+      if brick_x +. float_of_int Config.Brick.width > Config.Box.supx then
+        aux 0. (j +. 1.) new_acc (not b)
+      else if brick_y > Config.Box.supy then
+        new_acc
+      else
+        aux (i +. 1.) j new_acc (not b)
+    in
+  aux 0. (Float.round (Config.Box.supy /. float_of_int Config.Brick.height /. 4. *. 3.)) [] true
+
 end
 
 

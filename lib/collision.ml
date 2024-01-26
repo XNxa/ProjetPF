@@ -83,10 +83,20 @@ let rec contact (((bx, by), (bdx, bdy)), (rpos, _), list_briques) =
   | (brx, bry)::q -> collisionBalleBrique (bx, by) (brx, bry) || (contact (((bx, by), (bdx, bdy)), (rpos, false), q))
 
 
+let rec supprime_brique list_brick bx by =
+  match list_brick with
+  | [] -> []
+  | (brx, bry)::q -> if collisionBalleBrique (bx, by) (brx, bry) then q else (brx, bry)::(supprime_brique q bx by)
+
+
 let rebond (((bx, by), (bdx, bdy)), (rpos, b), list_briques) = 
   if contact_murs ((bx, by), (bdx, bdy)) then 
     (rebond_murs ((bx, by), (bdx, bdy))), (rpos, b), list_briques
   else if collisionBalleRaquette (bx, by) rpos then
-    (print_endline ("rebond"^(string_of_float bx)); ((bx, by+.2.), (bdx, -.bdy)), (rpos, b), list_briques )
-    else (* On un contact avec une brique : la supprimer de la liste des briques TODO *)
-      ((bx, by), (bdx, bdy)), (rpos, b), list_briques
+      let diff = (bx -. rpos)/.(rpos/.2.) in
+        if diff < 0. then
+          ((bx, by+.1.), (-.Float.abs(bdx+.diff*.bdx*.0.2), -.bdy+.Config.Acceleration.racket)), (rpos, b), list_briques
+        else
+          ((bx, by+.1.), (Float.abs(bdx+.diff*.bdx*.0.2), -.bdy+.Config.Acceleration.racket)), (rpos, b), list_briques
+    else
+      ((bx, by), (bdx, -.bdy)), (rpos, b), (supprime_brique list_briques bx by)
