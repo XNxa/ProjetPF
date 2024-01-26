@@ -48,7 +48,7 @@ let projectionSurSegment cx cy ax ay bx by =
   let s1 = (acx *. abx) +. (acy *. aby) in
   let s2 = (bcx *. abx) +. (bcy *. aby) in
   (s1 *. s2 < 0.) 
-  
+
 let collisionCircleAABB (xballe, yballe) (xbrick, ybrick) radius width height = 
   if not (collisionCarreCarre (xballe-.radius) (yballe-.radius) (radius*.2.) (radius*.2.) xbrick ybrick width height) 
     then false
@@ -84,27 +84,47 @@ let collisionBalleRaquette (xballe, yballe) xraquette =
 
   collisionCircleAABB (xballe, yballe) (xraquette -. width/.2., float_of_int Config.Racket.distance_from_bottom) radius width height
 
-(* Vérifier le contact avec les briques ou avec la raquette, ou avec un mur. *)
+(* Vérifier le contact avec les briques ou avec la raquette, ou avec un mur, selon l'état du jeu
+  Param : etat (etat_jeu)
+  Renvoie : (bool) True si un contact a lieu.   
+*)
 let rec contact (((bx, by), (bdx, bdy)), (rpos, _), list_briques) =
   match list_briques with 
   | [] -> collisionBalleRaquette (bx, by) rpos || contact_murs ((bx, by), (bdx, bdy))
   | (brx, bry)::q -> collisionBalleBrique (bx, by) (brx, bry) || (contact (((bx, by), (bdx, bdy)), (rpos, false), q))
 
 
+(*
+  Fonction qui permet de supprimer la brique avec laquelle on vient de détecter un contact.
+*)
 let rec supprime_brique list_brick bx by =
   match list_brick with
   | [] -> failwith "Erreur : brique non trouvée"
   | (brx, bry)::q -> if collisionBalleBrique (bx, by) (brx, bry) then (brx, q) else let ax, nl = (supprime_brique q bx by)  in (ax, (brx, bry)::nl)
 
 
+(* Fonction qui renvoit true si on a une collision avec le bas de l'écran. 
+  Param : ordonnée du centre de la balle.   
+*)
+let collisionBottom by =
+  by <= Config.Box.infy
+
+(*
+  Fonction qui permet de changer un état du jeu lorsqu'un rebond a lieu.
+  Param : etat (etat_jeu)
+  Renvoie : nouvel_etat (etat_jeu)   
+*)
 let rebond (((bx, by), (bdx, bdy)), (rpos, b), list_briques) = 
   if contact_murs ((bx, by), (bdx, bdy)) then 
-    (rebond_murs ((bx, by), (bdx, bdy))), (rpos, b), list_briques
+    if collisionBottom by then 
+      ((-1., -1.), (-1., -1.)), (-1., false), [] 
+    else 
+      (rebond_murs ((bx, by), (bdx, bdy))), (rpos, b), list_briques
   else if collisionBalleRaquette (bx, by) rpos then
     let diff = bx -. rpos in
     let norm = sqrt (bdx *. bdx +. bdy *. bdy) in  
     let new_norm = norm +. Config.Acceleration.racket in
-    let alpha = diff *. 3.1415 /. (float_of_int Config.Racket.width) in
+    let alpha = diff *. 3. /. (float_of_int Config.Racket.width) in
     let new_bdx = new_norm *. sin alpha in
     let new_bdy = new_norm *. cos alpha in
       ((bx, by+.3.), (new_bdx, new_bdy)), (rpos, b), list_briques
@@ -122,6 +142,7 @@ let rebond (((bx, by), (bdx, bdy)), (rpos, b), list_briques) =
 module TestCollisionPointCercle = struct
   (* Tester avec le centre du cercle *)
   let%test _ = (collisionPointCercle 1. 1. 1. 1. 1.)
+
   (* Tester avec un point aux limites *)
   let%test _ = collisionPointCercle 1. 1. 1. 2. 1.
   let%test _ = collisionPointCercle 1. 1. 2. 1. 1.

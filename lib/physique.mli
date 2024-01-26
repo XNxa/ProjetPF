@@ -1,5 +1,3 @@
-open Iterator
-
 (* Type representant la position et la vitesse de la balle *)
 type composantes_balle = (float * float) * (float * float)
 

@@ -31,15 +31,16 @@ let draw =
   Graphics.open_graph graphic_format;
   Graphics.auto_synchronize false;
   Format.printf "Initialisation du jeu.@\n";
+
   let etats = 
     Flux.unfold 
     (fun current_state -> 
       let next = Game.next_state current_state in
       if check_empty next then None else Some (current_state, next)) Game.init_state
   in
-  let score = loop etats 0 in
-  Format.printf "Score final : %d@\n" score;
+  let _ = loop etats 0 in
+  Format.printf "Fermeture du jeu \n";
+  Format.printf "Score pas encore implémenté... \n";
   Graphics.close_graph ()
-
 
 let () = draw

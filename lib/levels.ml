@@ -19,12 +19,16 @@ struct
       else
         aux (i +. 1.) j new_acc (not b)
     in
-  aux 0. (Float.round (Config.Box.supy /. float_of_int Config.Brick.height /. 4. *. 3.)) [] true
+  aux 0. (Float.round (Config.Box.supy /. float_of_int Config.Brick.height /. 2. *. 1.)) [] true
 
 end
 
+module Level_2 : LevelType = struct 
+  let get_bricklist = [(400., 400.)]
+end
 
 let get_bricks_level n =
   match n with 
   | 1 -> Level_1.get_bricklist
+  | 2 -> Level_2.get_bricklist
   | _ -> failwith ("Level " ^ (string_of_int n) ^ " undefined")

@@ -61,14 +61,13 @@ let rec unless fl cond f =
       | Some (t, q) -> if cond t then Some (t, f t) else Some (t, cons t (unless q cond f))
 ))
 
-module Bouncing (F: Frame) =
+module GamePhysics (F: Frame) =
 struct
   module FF = FreeFall (F)
   open Collision
 
-  (* *)
   (* Etat : position initiale de la balle, la postion initiale de la raquette et la position initialle des briques *)
-  (* Renvoie un flux : position de la balle, position de la raquette et la position des briques. *)
+  (* Renvoie un flux : position de la balle, position de la raquette et la position des briques.                   *)
   let rec run etat = 
       unless (FF.run etat) contact (fun etat -> (run (rebond etat)))
     
@@ -81,7 +80,7 @@ struct
   let box_y = Config.Box.infy, Config.Box.supy
 end 
 
-module Export = Bouncing(F)
+module Export = GamePhysics(F)
 
 let get_flux flux = 
   Export.run flux 
