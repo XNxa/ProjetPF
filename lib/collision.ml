@@ -21,6 +21,14 @@ let contact_murs ((x,y), (dx, dy)) =
 let collisionCarreCarre x1 y1 w1 h1 x2 y2 w2 h2 =
   not ((x2 >= x1 +. w1) || (x2 +. w2 <= x1) || (y2 >= y1 +. h1) || (y2 +. h2 <= y1))
 
+(* Teste la collision entre un point et un cercle : 
+  on compare la distance entre le centre du cercle et le point
+  avec le rayon du cercle.
+  Param x1 : abscisse du centre du cercle  
+  Param y1 : ordonnée du centre du cercle 
+  Param x2 : abscisse du point
+  Param y2 : ordonnée du point 
+*)
 let collisionPointCercle x1 y1 x2 y2 r =
   let dx = x1 -. x2 in
   let dy = y1 -. y2 in
@@ -100,3 +108,52 @@ let rebond (((bx, by), (bdx, bdy)), (rpos, b), list_briques) =
           ((bx, by+.1.), (Float.abs(bdx+.diff*.bdx*.0.2), -.bdy+.Config.Acceleration.racket)), (rpos, b), list_briques
     else
       ((bx, by), (bdx, -.bdy)), (rpos, b), (supprime_brique list_briques bx by)
+
+
+
+module TestCollisionPointCercle = struct
+  (* Tester avec le centre du cercle *)
+  let%test _ = (collisionPointCercle 1. 1. 1. 1. 1.)
+  (* Tester avec un point aux limites *)
+  let%test _ = collisionPointCercle 1. 1. 1. 2. 1.
+  let%test _ = collisionPointCercle 1. 1. 2. 1. 1.
+  let%test _ = collisionPointCercle 1. 1. 0. 1. 1.
+  let%test _ = collisionPointCercle 1. 1. 0. 1. 1.
+  
+  (* Tester avec des points en dehors *)
+  let%test _ = not (collisionPointCercle 1. 1. 3. 3. 1.)
+  let%test _ = not (collisionPointCercle 1. 1. (-.3.) (-.3.) 1.)
+  let%test _ = not (collisionPointCercle 1. 1. 3. (-.3.) 1.)
+  let%test _ = not (collisionPointCercle 1. 1. (-.3.) 3. 1.)
+
+end
+
+module TestCollisionCarreCarre = struct
+
+  (* CollisionCarreCarre  x1 y1 w1 h1 x2 y2 w2 h2*)
+
+  (* Cas x2 = x1 + w1*)
+  let%test _ = collisionCarreCarre 2. 0. 1. 2. 3. 0. 1. 1. = false
+
+  (* Cas x2 > x1 + w1*)
+  let%test _ = collisionCarreCarre 2. 0. 1. 2. 4. 0. 1. 1. = false
+
+  (* Cas x2 + w2 <= x1 *)
+  let%test _ = collisionCarreCarre 5. 0. 1. 2. 3. 2. 1. 1. = false
+
+  (* Cas x2 + w2 < x1 *)
+  let%test _ = collisionCarreCarre 6. 0. 1. 2. 3. 2. 1. 1. = false
+
+  (* Cas y2 = y1 + h1*)
+  let%test _ = collisionCarreCarre 0. 1. 1. 2. 3. 3. 1. 1. = false
+
+  (* Cas y2 > y1 + h1*)
+  let%test _ = collisionCarreCarre 0. 1. 1. 2. 3. 4. 1. 1. = false
+
+  (* Cas y2 + h2 <= y1*)
+  let%test _ = collisionCarreCarre 0. 2. 1. 2. 3. 1. 1. 1. = false
+
+  (* Cas y2 + h2 < y1*)
+  let%test _ = collisionCarreCarre 0. 3. 1. 2. 3. 1. 1. 1. = false
+
+end
