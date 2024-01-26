@@ -31,5 +31,5 @@ module Racket = struct
 end
 
 module Ball = struct
-  let radius = 5
+  let radius = 50
 end
