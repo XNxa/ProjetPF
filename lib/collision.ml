@@ -93,21 +93,29 @@ let rec contact (((bx, by), (bdx, bdy)), (rpos, _), list_briques) =
 
 let rec supprime_brique list_brick bx by =
   match list_brick with
-  | [] -> []
-  | (brx, bry)::q -> if collisionBalleBrique (bx, by) (brx, bry) then q else (brx, bry)::(supprime_brique q bx by)
+  | [] -> failwith "Erreur : brique non trouvée"
+  | (brx, bry)::q -> if collisionBalleBrique (bx, by) (brx, bry) then (brx, q) else let ax, nl = (supprime_brique q bx by)  in (ax, (brx, bry)::nl)
 
 
 let rebond (((bx, by), (bdx, bdy)), (rpos, b), list_briques) = 
   if contact_murs ((bx, by), (bdx, bdy)) then 
     (rebond_murs ((bx, by), (bdx, bdy))), (rpos, b), list_briques
   else if collisionBalleRaquette (bx, by) rpos then
-      let diff = (bx -. rpos)/.(rpos/.2.) in
-        if diff < 0. then
-          ((bx, by+.1.), (-.Float.abs(bdx+.diff*.bdx*.0.2), -.bdy+.Config.Acceleration.racket)), (rpos, b), list_briques
-        else
-          ((bx, by+.1.), (Float.abs(bdx+.diff*.bdx*.0.2), -.bdy+.Config.Acceleration.racket)), (rpos, b), list_briques
+    let diff = bx -. rpos in
+    let norm = sqrt (bdx *. bdx +. bdy *. bdy) in  
+    let new_norm = norm +. Config.Acceleration.racket in
+    let alpha = diff *. 3.1415 /. (float_of_int Config.Racket.width) in
+    let new_bdx = new_norm *. sin alpha in
+    let new_bdy = new_norm *. cos alpha in
+      ((bx, by+.3.), (new_bdx, new_bdy)), (rpos, b), list_briques
+  
     else
-      ((bx, by), (bdx, -.bdy)), (rpos, b), (supprime_brique list_briques bx by)
+      let xbrick, new_list_briques = supprime_brique list_briques bx by in
+        if bx < xbrick || bx > xbrick +. float_of_int Config.Brick.width then
+          ((bx, by), (-.bdx, bdy)), (rpos, b), new_list_briques
+        else
+          ((bx, by), (bdx, -.bdy)), (rpos, b), new_list_briques
+
 
 
 

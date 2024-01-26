@@ -14,18 +14,18 @@ module Init_pos = struct
   let racket_x = 495.
   let ball_x = 395.
   let ball_y = 295.
-  let ball_vx = 50.
-  let ball_vy = -550.
+  let ball_vx = 250.
+  let ball_vy = -150.
 end
 
 
 module Brick = struct
-  let width = 40
-  let height = 10
+  let width = 100
+  let height = 50
 end
 
 module Racket = struct
-  let width = 50
+  let width = 150
   let height = 10
   let distance_from_bottom = 20
 end
@@ -35,5 +35,5 @@ module Ball = struct
 end
 
 module Acceleration = struct
-  let racket = 15.
+  let racket = 1.
 end
